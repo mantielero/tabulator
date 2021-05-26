@@ -5,11 +5,14 @@ when not defined(js):
 
 type
   Tabulator* = JsObject#ref object
+  Options*   = JsObject
+  Column*    = JsObject
 
 proc tabulator*(element:cstring, options:JsObject): Tabulator {. importcpp: "new Tabulator(@)" .}
 
 proc setData*(this:Tabulator, a:openArray[JsObject]):Tabulator {.importcpp:"#.setData(@)", discardable.}
 
+proc setData*(this:Tabulator, a:JsObject):Tabulator {.importcpp:"#.setData(@)", discardable.}
 
 
 # Columns definitions
@@ -20,33 +23,42 @@ type
     vaTop, vaMiddle, vaBottom
 
   
-proc genColumn*(title:string, field:string, visible:bool = true):JsObject =
-  var col = newJsObject()
-  col.title   = title.cstring
-  col.field   = field.cstring
-  #col.visible = visible
+proc genColumn*(title:string, field:string, visible:bool = true):Column =
+  result = newJsObject()
+  result.title   = title.cstring
+  result.field   = field.cstring
+  #result.visible = visible
 
 
-#[
+# Options
 type
-  Crossfilter* = ref object
+  Layout = enum
+    ## Columns Layout Modes: You can choose how your table should layout its columns by setting the layout mode
+    lFitData, lFitDataAndFill, lFitDataStretch, lFitDataTable, lFitColumns
 
-proc crossfilter*(a:openArray[JsObject]): Crossfilter {.importc:"crossfilter".}
+proc newOptions*():Options =
+  newJsObject()#.Options
 
-proc groupAll*(this:Crossfilter):Crossfilter {.importcpp.}
+proc setMovableColumns*(opts:var Options) =
+  opts.movableColumns = true
 
-proc group*(this:Crossfilter):Crossfilter {.importcpp.}
+# General Table Configuration
+# http://tabulator.info/docs/4.9/options#table
+proc setHeight*(opts:var Options, height:int) =
+  opts.height = height
 
-proc reduceCount*(this:Crossfilter):Crossfilter {.importcpp.}
+
+# Columns
+# http://tabulator.info/docs/4.9/options#columns
+proc setLayout*(opts:var Options, layout:Layout) =
+  opts.layout = case layout:
+                of lFitData: "fitData".cstring
+                of lFitDataAndFill: "fitDataAndFill".cstring                
+                of lFitDataStretch: "fitDataStretch".cstring
+                of lFitDataTable: "fitDataTable".cstring
+                of lFitColumns: "fitColumns".cstring
+
+proc setMovableColumns*(opts:var Options, movable:bool) =
+  opts.movableColumns = movable
 
 
-
-proc value*(this:Crossfilter):int {.importcpp.}
-
-proc all*(this:Crossfilter):JsObject {.importcpp.}
-
-#---
-proc dimension*(this:Crossfilter,a: proc(b:JsObject):JsObject ):Crossfilter {.importcpp.}
-
-proc reduceSum*(this:Crossfilter, a: proc(b:JsObject):JsObject ):Crossfilter {.importcpp.}
-]#
