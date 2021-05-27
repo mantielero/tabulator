@@ -15,12 +15,28 @@ proc setData*(this:Tabulator, a:openArray[JsObject]):Tabulator {.importcpp:"#.se
 proc setData*(this:Tabulator, a:JsObject):Tabulator {.importcpp:"#.setData(@)", discardable.}
 
 
+func setDataAsSeqTuple*(this:Tabulator, tt: seq[tuple]) =
+  var dat = newSeq[JsObject]()
+  for t in tt:
+    var tmp = newJsObject()
+    for name, value in t.fieldPairs:
+      when value is string:
+        tmp[name] = value.cstring
+      else:
+        tmp[name] = value
+    dat &= tmp
+  this.setData( dat )
+
 # Columns definitions
 type
   HorizontalAlignment* = enum
     haLeft, haCenter, haRight
   VerticalAlignment* = enum
     vaTop, vaMiddle, vaBottom
+
+
+proc setDataFromLocalFile*( this:Tabulator, file:string):Tabulator {.importcpp:"#.setDataFromLocalFile(@)", discardable.}
+
 
   
 proc genColumn*(title:string, field:string, visible:bool = true):Column =

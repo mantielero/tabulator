@@ -1,25 +1,8 @@
 include karax / prelude, tables, jsffi,tabulator#, tables  # json, 
 
-var data = @[
-  ( id:1, name:"Oli Bob", age: 12, col:"red", dob:""),
-  ( id:2, name:"Mary May", age:1, col:"blue", dob:"14/05/1982" ),
-  ( id:3, name:"Christine Lobowski", age:42, col:"green", dob:"22/05/1982" ),
-  ( id:4, name:"Brendon Philips", age:125, col:"orange", dob:"01/08/1980" ),
-  ( id:5, name:"Margret Marmajuke", age:16, col:"yellow", dob:"31/01/1999" ),  
-  ]
 
 
-proc setData(this:Tabulator, data:seq[tuple[id:int,name:string, age:int, col:string, dob:string]]) =
-  var tmp = newSeq[JsObject]()
-  for i in data:
-    var obj = newJsObject()
-    obj.id = i.id
-    obj.name = i.name.cstring
-    obj.age  = i.age
-    obj.col = i.col.cstring
-    obj.dob = i.dob.cstring
-    tmp &= obj
-  this.setData(tmp)
+
 
 #[
 var tabledata = @[
@@ -45,12 +28,14 @@ opts.columns = columns
 opts.setMovableColumns()
 
 var table = tabulator("#example-table", opts )
-#table.setData(tabledata)
-table.setData(data)
 
 proc createDom(): VNode =
   result = buildHtml(tdiv):
-    h1(text "Hello Karax", class="title")
-
+    h1(text "Tabulator Example", class="title")
+    button(class="button is-primary"):
+      text "Load file..."
+      proc onclick(ev: Event; n: VNode) =
+        table.setDataFromLocalFile("*.json")
+        #lines.add "Hello simulated universe"
 
 setRenderer createDom
